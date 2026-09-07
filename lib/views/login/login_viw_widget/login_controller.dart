@@ -6,6 +6,7 @@ import 'package:ycd/utils/network/api.dart';
 import 'package:ycd/utils/network/get_store.dart';
 import 'package:ycd/utils/network/http_mgr.dart';
 import 'package:ycd/utils/storage_util.dart';
+import 'package:ycd/utils/bx_loading.dart';
 
 import 'login_state.dart';
 
@@ -19,7 +20,15 @@ class LoginController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController userNameController = TextEditingController();
+  final TextEditingController registerUsernameController =
+      TextEditingController();
+  final TextEditingController nicknameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController registerPasswordController =
+      TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   @override
   void onInit() {
@@ -30,7 +39,12 @@ class LoginController extends GetxController {
   @override
   void onClose() {
     userNameController.dispose();
+    registerUsernameController.dispose();
+    nicknameController.dispose();
+    phoneController.dispose();
     passwordController.dispose();
+    registerPasswordController.dispose();
+    confirmPasswordController.dispose();
     emailController.dispose();
     super.onClose();
   }
@@ -50,7 +64,8 @@ class LoginController extends GetxController {
     }
   }
 
-  Future<void> _persistLoginCredentials(String username, String password) async {
+  Future<void> _persistLoginCredentials(
+      String username, String password) async {
     if (state.autoLogin.value) {
       await StorageUtil.saveBool(_keyAutoLogin, true);
       await StorageUtil.saveString(_keySavedUsername, username);
@@ -76,6 +91,12 @@ class LoginController extends GetxController {
       colorText: Colors.white,
       duration: const Duration(seconds: 2),
     );
+  }
+
+  void registerNotAvailable() {
+    if (!formKey.currentState!.validate()) return;
+
+    BXLoading.showToast('暂不开放');
   }
 
   Future<void> login() async {

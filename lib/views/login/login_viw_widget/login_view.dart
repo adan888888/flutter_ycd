@@ -21,10 +21,9 @@ class LoginWidget extends GetView<LoginController> {
     final mediaQuery = MediaQuery.of(context);
     // SafeArea keeps the bottom system inset, so only the remaining portion of
     // the IME actually obscures its child.
-    final keyboardOcclusion =
-        mediaQuery.viewInsets.bottom > mediaQuery.viewPadding.bottom
-            ? mediaQuery.viewInsets.bottom - mediaQuery.viewPadding.bottom
-            : 0.0;
+    final keyboardOcclusion = mediaQuery.viewInsets.bottom > mediaQuery.viewPadding.bottom
+        ? mediaQuery.viewInsets.bottom - mediaQuery.viewPadding.bottom
+        : 0.0;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -42,8 +41,7 @@ class LoginWidget extends GetView<LoginController> {
               ),
               child: SingleChildScrollView(
                 key: const ValueKey('login-scroll-view'),
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: EdgeInsets.symmetric(horizontal: 28.w),
                 child: Obx(() {
                   final isLoginTab = c.state.authTabIndex.value == 0;
@@ -61,7 +59,7 @@ class LoginWidget extends GetView<LoginController> {
                             children: [
                               _buildInput(
                                 controller: c.userNameController,
-                                hint: '请输入邮箱/手机号/账号',
+                                hint: '请输入账号',
                                 prefix: Icons.person_outline,
                                 validator: (value) {
                                   if (value == null || value.trim().isEmpty) {
@@ -91,8 +89,12 @@ class LoginWidget extends GetView<LoginController> {
                                     ),
                                   ),
                                   validator: (value) {
-                                    if (value == null || value.isEmpty) return '请输入密码';
-                                    if (value.length < 2) return '密码长度至少2位';
+                                    if (value == null || value.isEmpty) {
+                                      return '请输入密码';
+                                    }
+                                    if (value.length < 2) {
+                                      return '密码长度至少2位';
+                                    }
                                     return null;
                                   },
                                 ),
@@ -109,14 +111,80 @@ class LoginWidget extends GetView<LoginController> {
                         SizedBox(height: 20.h),
                         _buildServiceEntry(c),
                       ] else
-                        Padding(
-                          padding: EdgeInsets.symmetric(vertical: 48.h),
-                          child: Text(
-                            '请联系管理员开通账号',
-                            style: TextStyle(
-                              fontSize: 15.sp,
-                              color: _textMuted,
-                            ),
+                        Form(
+                          key: c.formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildInput(
+                                controller: c.registerUsernameController,
+                                hint: '请输入账号',
+                                prefix: Icons.person_outline,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return '请输入账号';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              SizedBox(height: 12.h),
+                              _buildInput(
+                                controller: c.nicknameController,
+                                hint: '昵称（选填，默认使用账号）',
+                                prefix: Icons.badge_outlined,
+                              ),
+                              SizedBox(height: 12.h),
+                              _buildInput(
+                                controller: c.phoneController,
+                                hint: '手机号（选填）',
+                                prefix: Icons.phone_outlined,
+                              ),
+                              SizedBox(height: 12.h),
+                              Obx(
+                                () => _buildInput(
+                                  controller: c.registerPasswordController,
+                                  hint: '请输入密码',
+                                  prefix: Icons.lock_outline,
+                                  obscureText: c.state.isPasswordVisible.value,
+                                  suffix: _buildPasswordVisibilityButton(c),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return '请输入密码';
+                                    }
+                                    if (value.length < 2) {
+                                      return '密码长度至少2位';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              SizedBox(height: 12.h),
+                              Obx(
+                                () => _buildInput(
+                                  controller: c.confirmPasswordController,
+                                  hint: '请再次输入密码',
+                                  prefix: Icons.lock_outline,
+                                  obscureText: c.state.isPasswordVisible.value,
+                                  suffix: _buildPasswordVisibilityButton(c),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return '请再次输入密码';
+                                    }
+                                    if (value != c.registerPasswordController.text) {
+                                      return '两次输入的密码不一致';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              SizedBox(height: 20.h),
+                              _buildRegisterButton(c),
+                              SizedBox(height: 16.h),
+                              Text(
+                                '注册功能暂未开放,请联系管理员',
+                                style: TextStyle(fontSize: 13.sp, color: _textMuted),
+                              ),
+                            ],
                           ),
                         ),
                     ],
@@ -277,6 +345,39 @@ class LoginWidget extends GetView<LoginController> {
     );
   }
 
+  Widget _buildRegisterButton(LoginController c) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50.h,
+      child: ElevatedButton(
+        onPressed: c.registerNotAvailable,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _gold,
+          foregroundColor: const Color(0xFF2A2218),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999.r)),
+        ),
+        child: Text(
+          '确认注册',
+          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordVisibilityButton(LoginController c) {
+    return IconButton(
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
+      splashRadius: 18.r,
+      onPressed: c.togglePasswordVisibility,
+      icon: Icon(
+        c.state.isPasswordVisible.value ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+        color: _gold,
+        size: 20.w,
+      ),
+    );
+  }
+
   Widget _buildInput({
     required TextEditingController controller,
     required String hint,
@@ -367,9 +468,7 @@ class _LoginContentLayoutDelegate extends SingleChildLayoutDelegate {
 
   @override
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
-    final availableHeight = constraints.maxHeight > keyboardOcclusion
-        ? constraints.maxHeight - keyboardOcclusion
-        : 0.0;
+    final availableHeight = constraints.maxHeight > keyboardOcclusion ? constraints.maxHeight - keyboardOcclusion : 0.0;
     return BoxConstraints(
       minWidth: constraints.maxWidth,
       maxWidth: constraints.maxWidth,
@@ -380,15 +479,9 @@ class _LoginContentLayoutDelegate extends SingleChildLayoutDelegate {
   @override
   Offset getPositionForChild(Size size, Size childSize) {
     final restingSpace = size.height - childSize.height;
-    final restingTop = restingSpace > 0
-        ? restingSpace * ((_restingAlignmentY + 1) / 2)
-        : 0.0;
-    final availableHeight = size.height > keyboardOcclusion
-        ? size.height - keyboardOcclusion
-        : 0.0;
-    final bottomTop = availableHeight > childSize.height
-        ? availableHeight - childSize.height
-        : 0.0;
+    final restingTop = restingSpace > 0 ? restingSpace * ((_restingAlignmentY + 1) / 2) : 0.0;
+    final availableHeight = size.height > keyboardOcclusion ? size.height - keyboardOcclusion : 0.0;
+    final bottomTop = availableHeight > childSize.height ? availableHeight - childSize.height : 0.0;
     // Stay at the resting position until the keyboard would overlap the form.
     // Tracking the inset continuously also prevents a rebound while it closes.
     final top = restingTop < bottomTop ? restingTop : bottomTop;
