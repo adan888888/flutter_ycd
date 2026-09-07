@@ -1076,43 +1076,27 @@ class JiShuQiController extends GetxController {
 
   void deleteLast() {
     dismissKeyboard();
-    if (state.betRecordList.isNotEmpty) {
-      Get.defaultDialog(
-        barrierDismissible: false,
-        backgroundColor: state.isDarkMode ? const Color(0xFF1E2A3A) : Colors.white,
-        title: '警告',
-        content: Text(
-          '确定删除最后一行数据？',
-          style: TextStyle(color: state.isDarkMode ? state.darkTextColor : Colors.black),
-        ),
-        titleStyle: TextStyle(color: state.isDarkMode ? state.darkTextColor : Colors.black),
-        contentPadding: const EdgeInsets.all(20),
-        onCancel: () {},
-        onConfirm: () {
-          Get.back();
-          BXDelete<JsqBetRecordModel>(Api.deleteLast,
-              success: (isSuccess, code, message, results) {
-                if (!isSuccess) return;
-                if (results.isNotEmpty) {
-                  final deletedId = results.first.id;
-                  final idx = deletedId == null ? -1 : state.betRecordList.indexWhere((e) => e.id == deletedId);
-                  if (idx >= 0) {
-                    state.betRecordList.removeAt(idx);
-                  } else if (state.betRecordList.isNotEmpty) {
-                    state.betRecordList.removeLast();
-                  }
-                }
-                state.js1 = state.js1 - 1;
-                state.totalValue[28] = "${state.js1}/${state.js2}";
-                _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep, isShowLoading: false);
-                _reloadLuZiTu();
-                update();
-              },
-              failed: (_, __) {},
-              onModel: (m) => JsqBetRecordModel.fromJson(m));
+    if (state.betRecordList.isEmpty) return;
+    BXDelete<JsqBetRecordModel>(Api.deleteLast,
+        success: (isSuccess, code, message, results) {
+          if (!isSuccess) return;
+          if (results.isNotEmpty) {
+            final deletedId = results.first.id;
+            final idx = deletedId == null ? -1 : state.betRecordList.indexWhere((e) => e.id == deletedId);
+            if (idx >= 0) {
+              state.betRecordList.removeAt(idx);
+            } else if (state.betRecordList.isNotEmpty) {
+              state.betRecordList.removeLast();
+            }
+          }
+          state.js1 = state.js1 - 1;
+          state.totalValue[28] = "${state.js1}/${state.js2}";
+          _getStatisticalAreasData(JiShuQiState.tempIndexCmdKeep, isShowLoading: false);
+          _reloadLuZiTu();
+          update();
         },
-      );
-    }
+        failed: (_, __) {},
+        onModel: (m) => JsqBetRecordModel.fromJson(m));
   }
 
   void updateLists(int index) {
@@ -1300,8 +1284,6 @@ class JiShuQiController extends GetxController {
     var s = textEditingController.text.toString();
     switch (i) {
       case 0: //排列数据
-        BXLoading.show(douyinStyle: true);
-        //改成接口，不用model接收值
         sort();
         break;
       case 1: //清除数据（消数列数据全部清除）
@@ -1467,6 +1449,7 @@ class JiShuQiController extends GetxController {
 
   sort() {
     dismissKeyboard();
+    BXLoading.show(douyinStyle: true);
     BXPost(
       Api.sortXiaoShu,
       isShowLoading: false,

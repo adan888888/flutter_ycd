@@ -21,13 +21,13 @@ class MoreFunctionsDialog extends StatelessWidget {
     1,
     2,
     3,
-    4,
     5,
     6,
     8,
     9,
     11,
     12,
+    4,
     10,
   ];
 
